@@ -1,7 +1,9 @@
-const Sequelize = require('sequelize')
 require('dotenv').config()
+const Sequelize = require('sequelize')
 
-const sequelize = new Sequelize(process.env.CONNECTION_STRING,{
+const {CONNECTION_STRING} = process.env
+
+const sequelize = new Sequelize(process.env.CONNECTION_STRING, {
     dialect: 'postgres',
     dialectOptions: {
         ssl: {
@@ -240,31 +242,33 @@ module.exports = {
             .catch(err => console.log(err))
     },
     createCity: (req, res) => {
-        let {cityId} = req.body
+        let {name, rating, countryId} = req.body
 
         sequelize.query(`
-        INSERT INTO countries
-        (city_name, city_rating, countryId)
-        VALUES (Longoteme, 5, 676)
+        INSERT INTO cities (name, rating, countryId)
+        VALUES ('${name}', ${rating}, ${countryId})
         `)
         .then(dbRes => res.status(200).send(dbRes[0]))
             .catch(err => console.log(err))
     },
     getCities: (req, res) => {
         sequelize.query(`
-        SELECT *
+        SELECT a.city_id, a.name, AS city, a.rating, b.country_id, b.name as country
         FROM cities a
         JOIN countries b
-        ON a.city_id, a.city_name, a.city_rating, b.country_id, b.country_name
-        WHERE b.coutry_id = a.courty_id;
+        ON b.country_id = a.country_id 
+        ORDER BY a.rating DESC;
         `)
         .then(dbRes => res.status(200).send(dbRes[0]))
             .catch(err => console.log(err))
     },
     deleteCity: (req, res) => {
-        let {id} = req.param
+        let {id} = req.params
         sequelize.query(`
-        
+        DELETE FROM cities
+        WHERE city_id = ${+id};
         `)
+        .then(dbRes => res.status(200).send(dbRes[0]))
+            .catch(err => console.log(err))
     }
 }
